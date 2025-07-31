@@ -1,0 +1,91 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:17
+    container_name: pg
+    command: ["postgres", "-p", "5433"]
+    ports:
+      - "5433:5433"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teamandasset
+  
+  graphql:
+    build: ./user-service/user-service/user-service
+    ports:
+      - "4001:4001"
+    environment:
+      NODE_ENV: development
+      PORT: 4001
+      HOST: 0.0.0.0 
+      ACCESS_TOKEN_SECRET: IDontKnowHowButTheyFoundMe
+      REFRESH_TOKEN_SECRET: ArcticMonkeys
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: teamandasset
+      DB_DIALECT: postgres
+      DB_PORT: 5433
+    depends_on:
+      - db
+
+  app:
+    build: ./team-service
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./team-service/logs:/app/logs
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teamandasset
+      POSTGRES_PORT: 5433
+      POSTGRES_SSL_MODE: disable
+      ACCESS_TOKEN_SECRET: IDontKnowHowButTheyFoundMe
+      REFRESH_TOKEN_SECRET: ArcticMonkeys
+    depends_on:
+      - loki
+      - promtail
+      - db
+      - graphql
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Prometheus UI and scraping
+    volumes:
+      - ./prometheus-config.yml:/etc/prometheus/prometheus-config.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus-config.yml'
+      - '--web.enable-lifecycle' # Enable /-/reload endpoint for config changes
+    depends_on:
+      - app
+
+  loki:
+    image: grafana/loki:2.9.4
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    volumes:
+      - ./team-service/logs:/var/logs/team-service
+      - ./promtail-config.yml:/etc/promtail/promtail-config.yml
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER:admin
+      - GF_SECURITY_ADMIN_PASSWORD:admin
+    depends_on:
+      - loki

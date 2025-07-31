@@ -1,0 +1,44 @@
+1. go get <package_name>: install package
+
+2. functions or variables have to have the first word of their name capitalized to be used by another package/program
+
+3. router := gin.Default(): create a router
+
+4. router.GET("/"): register a new route "/" for method GET
+
+5. func(c *gin.Context) { ... }: handler function (controller) for each request
+
+6. c *gin.Context: context for the request, containing request data (headers, params, body) and used to write response
+
+7. c.ShouldBindJSON(&input): binding JSON data from request body into a struct object/variable
+
+8: mapping table (many2many)
+
+9: c.Param(param_name): get the parameter value from URL route
+
+10: c.Query = c.Request.URL.Query().Get(param_key): get the value of query parameter
+
+11: c.Set(key, value): set data in gin.Context
+
+12: c.MustGet(key): get data from key in gin.Context, panic if not exists
+
+13. defer: pushes a function call onto a list. The list of saved calls is executed after the surrounding function returns. Defer is commonly used to simplify functions that perform various clean-up actions.
+
+14. panic: a built-in function that stops the ordinary flow and end the surrounding function (after calling the deferred functions), and then continues up the stack until all functions in the current goroutine have returned, and finally crash the program
+
+15. recover: a built-in function that regains control of a panicking goroutine
+
+16. ORM: là một kỹ thuật lập trình cho phép ánh xạ dữ liệu từ cơ sở dữ liệu quan hệ sang các đối tượng trong ngôn ngữ lập trình hướng đối tượng
+
+17. ORM hoạt động bằng cách tạo ra một lớp trừu tượng giữa ứng dụng và cơ sở dữ liệu. Lớp này sẽ ánh xạ các bảng trong cơ sở dữ liệu thành các lớp đối tượng trong mã nguồn, 
+và các hàng trong bảng thành các đối tượng cụ thể. Khi lập trình viên muốn thao tác với dữ liệu, họ sẽ làm việc với các đối tượng này, và ORM sẽ tự động dịch các thao tác đó 
+thành các câu lệnh SQL tương ứng để tương tác với cơ sở dữ liệu. 
+
+Logging & Monitoring Building Workflow:
+1. Install Zerolog and create a Zerolog logger
+2. Create a middleware before any other middleware: calculate time and logging every request
+3. Use Promtail to scrape logs and push them to Loki
+    3.1. Add loki, promtail and grafana services to docker-compose.ỹml
+    3.2. Add promtail config file (promtail-config.yaml)
+    3.3. Add code into Logger creation function to write request log into .log file
+4. Add dashboard to watch logs of success and fail requests

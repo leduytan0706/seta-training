@@ -1,0 +1,2 @@
+Username,Email,Password,Role,IsMainManager
+jack,jack@example.com,secret123,manager,1
